@@ -1,8 +1,6 @@
 import os.path
 import unittest
 
-from pyramid.testing import cleanUp
-
 # we use this folder
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -751,16 +749,6 @@ class DummyOverride:
 
     def __call__(self, resource_name):
         return self.result
-
-
-class DummyOverrides:
-    def __init__(self, result):
-        self.result = result
-
-    def get_filename(self, resource_name):
-        return self.result
-
-    listdir = isdir = has_resource = get_stream = get_string = get_filename
 
 
 class DummyPackageOverrides:

@@ -156,9 +156,7 @@ class static_view:
             resource_path = '{}/{}'.format(self.docroot.rstrip('/'), path)
             registry = getattr(request, 'registry', None)
             resolver = AssetResolver(None, registry=registry)
-            asset = resolver.resolve(
-                f'{self.package_name}:{resource_path}'
-            )
+            asset = resolver.resolve(f'{self.package_name}:{resource_path}')
             if asset.isdir():
                 if not request.path_url.endswith('/'):
                     raise self.add_slash_redirect(request)

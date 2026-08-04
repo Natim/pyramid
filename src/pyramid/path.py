@@ -214,7 +214,18 @@ class FSAssetDescriptor:
         return os.path.exists(self.path)
 
 
-# We're importing these classes for backwards compatibility, because these used
-# to exist in `pyramid.path`.
-# This must be at the bottom of the file to avoid a circular import.
-from .resolver import AssetResolver, DottedNameResolver, Resolver  # noqa
+def __getattr__(name):
+    """Lazy re-exports for backwards compatibility."""
+    if name == 'AssetResolver':
+        from pyramid.resolver import AssetResolver
+
+        return AssetResolver
+    if name == 'DottedNameResolver':
+        from pyramid.resolver import DottedNameResolver
+
+        return DottedNameResolver
+    if name == 'Resolver':
+        from pyramid.resolver import Resolver
+
+        return Resolver
+    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')

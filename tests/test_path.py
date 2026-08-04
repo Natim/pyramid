@@ -15,7 +15,7 @@ class TestRefFilename(unittest.TestCase):
 
         ref = importlib.resources.files('tests.pkgs.assets') / 'foo.txt'
         path = self._callFUT(ref)
-        expected = os.path.join(here, 'pkgs/assets/foo.txt')
+        expected = os.path.join(here, 'pkgs', 'assets', 'foo.txt')
         self.assertEqual(path, expected)
 
 
@@ -27,7 +27,7 @@ class TestResourceFilename(unittest.TestCase):
 
     def test_returns_path(self):
         path = self._callFUT('tests.pkgs.assets', 'foo.txt')
-        expected = os.path.join(here, 'pkgs/assets/foo.txt')
+        expected = os.path.join(here, 'pkgs', 'assets', 'foo.txt')
         self.assertEqual(path, expected)
 
 
@@ -248,8 +248,8 @@ class TestPkgResourcesAssetDescriptor(unittest.TestCase):
 
         return PkgResourcesAssetDescriptor
 
-    def _makeOne(self, pkg='tests', path='test_asset.py'):
-        return self._getTargetClass()(pkg, path)
+    def _makeOne(self, pkg='tests', path='test_asset.py', overrides=None):
+        return self._getTargetClass()(pkg, path, overrides)
 
     def test_class_conforms_to_IAssetDescriptor(self):
         from zope.interface.verify import verifyClass
@@ -288,6 +288,34 @@ class TestPkgResourcesAssetDescriptor(unittest.TestCase):
 
     def test_exists(self):
         inst = self._makeOne()
+        self.assertTrue(inst.exists())
+
+    def test_stream_with_overrides(self):
+        from io import BytesIO
+
+        class Overrides:
+            def get_stream(self, resource_name):
+                return BytesIO(b'override')
+
+        inst = self._makeOne(overrides=Overrides())
+        stream = inst.stream()
+        self.assertEqual(stream.read(), b'override')
+        stream.close()
+
+    def test_listdir_with_overrides(self):
+        class Overrides:
+            def listdir(self, resource_name):
+                return ['a', 'b']
+
+        inst = self._makeOne(overrides=Overrides())
+        self.assertEqual(inst.listdir(), ['a', 'b'])
+
+    def test_exists_with_overrides(self):
+        class Overrides:
+            def has_resource(self, resource_name):
+                return True
+
+        inst = self._makeOne(overrides=Overrides())
         self.assertTrue(inst.exists())
 
 
@@ -344,6 +372,32 @@ class TestFSAssetDescriptor(unittest.TestCase):
     def test_exists(self):
         inst = self._makeOne()
         self.assertTrue(inst.exists())
+
+
+class TestPathLazyExports(unittest.TestCase):
+    def test_asset_resolver_reexport(self):
+        from pyramid.path import AssetResolver
+        from pyramid.resolver import AssetResolver as direct
+
+        self.assertIs(AssetResolver, direct)
+
+    def test_dotted_name_resolver_reexport(self):
+        from pyramid.path import DottedNameResolver
+        from pyramid.resolver import DottedNameResolver as direct
+
+        self.assertIs(DottedNameResolver, direct)
+
+    def test_resolver_reexport(self):
+        from pyramid.path import Resolver
+        from pyramid.resolver import Resolver as direct
+
+        self.assertIs(Resolver, direct)
+
+    def test_unknown_attribute_raises(self):
+        import pyramid.path as path_module
+
+        with self.assertRaises(AttributeError):
+            getattr(path_module, 'this_does_not_exist')
 
 
 class DummyPackageOrModule:
