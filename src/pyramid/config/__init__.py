@@ -317,7 +317,9 @@ class Configurator(
                 default_view_mapper=default_view_mapper,
                 exceptionresponse_view=exceptionresponse_view,
             )
-        self.asset_resolver = AssetResolver(self.package, registry=self.registry)
+        self.asset_resolver = AssetResolver(
+            self.package, registry=self.registry
+        )
 
     def setup_registry(
         self,
